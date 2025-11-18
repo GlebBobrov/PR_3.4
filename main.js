@@ -159,17 +159,66 @@ function handleAttack(playerDamageMax) {
     }
 }
 
-// стандартная атака (до 30 хп)
-$btnKick.addEventListener('click', function() {
+const createLimitedClickHandler = (maxClicks, onClickAction, buttonName, buttonElement) => {
+    let clickCount = 0;
+    const originalText = buttonElement.innerText;
+
+    // Функція для обновлення тексту кнопки
+    const updateButtonText = () => {
+        const remainingClicks = maxClicks - clickCount;
+        buttonElement.innerText = `${originalText} (${remainingClicks})`;
+    };
+
+    // Ініціалізація тексту кнопки
+    updateButtonText();
+
+    return (event) => {
+        if (clickCount < maxClicks) {
+            clickCount++;
+            const remainingClicks = maxClicks - clickCount;
+
+            console.log(`Кнопка "${buttonName}": Залишилось натискань: ${remainingClicks}`);
+            
+            // Оновлюємо текст на кнопці
+            updateButtonText();
+            
+            onClickAction();
+
+            if (remainingClicks === 0) {
+                console.log(`Кнопка "${buttonName}": Ліміт ( ${maxClicks} ) вичерпано. Кнопка вимкнена.`);
+                event.currentTarget.disabled = true;
+                buttonElement.innerText = `${originalText} (0)`;
+            }
+        }
+    };
+};
+
+const thunderShockAction = () => {
     console.log('Thunder Shock!');
     handleAttack(30);
-});
+};
 
-// - сильная атака (до 50 хп)
-$btnSpecialKick.addEventListener('click', function() {
+const megaShockAction = () => {
     console.log('Mega Shock!');
     const damage = Math.floor(Math.random() * 51) + 50; // от 50 до 100 включительно
     handleAttack(damage);
-});
+};
+
+const THUNDER_SHOCK_LIMIT = 6;
+const MEGA_SHOCK_LIMIT = 2;
+
+$btnKick.addEventListener('click', createLimitedClickHandler(
+    THUNDER_SHOCK_LIMIT,
+    thunderShockAction,
+    'Thunder Shock',
+    $btnKick
+));
+
+$btnSpecialKick.addEventListener('click', createLimitedClickHandler(
+    MEGA_SHOCK_LIMIT,
+    megaShockAction,
+    'Mega Shock',
+    $btnSpecialKick
+));
 
 init();
